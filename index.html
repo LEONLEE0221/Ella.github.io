@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name disproved="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Plex Services Sample Form</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: #f28c38;
@@ -20,7 +19,6 @@
             background: linear-gradient(135deg, #fff5e6 0%, #ffffff 100%);
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
         }
         h1 {
             color: var(--primary-color);
@@ -28,7 +26,6 @@
             font-size: 2.8em;
             margin-bottom: 30px;
             font-weight: 700;
-            letter-spacing: 0.5px;
             text-transform: uppercase;
             background: linear-gradient(to right, var(--primary-color), #f7b731);
             -webkit-background-clip: text;
@@ -53,6 +50,12 @@
             transform: translateX(-50%);
             border-radius: 2px;
         }
+        h3 {
+            color: var(--text-color);
+            font-size: 1.3em;
+            margin: 20px 0 10px;
+            font-weight: 500;
+        }
         form {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -69,22 +72,35 @@
             font-size: 0.95em;
             font-weight: 500;
             color: var(--text-color);
-            transition: color 0.3s;
         }
-        input[type="text"], input[type="email"], select {
+        input[type="text"], input[type="email"], select, textarea {
             padding: 12px;
             margin-top: 6px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             background: #fff;
             font-size: 0.9em;
-            transition: all 0.3s ease;
         }
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 8px rgba(242, 140, 56, 0.3);
             background: var(--accent-color);
             outline: none;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .row-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .eval-section {
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         table {
             width: 100%;
@@ -95,7 +111,6 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
         }
         table:hover {
             transform: translateY(-3px);
@@ -111,7 +126,6 @@
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.95em;
-            letter-spacing: 0.5px;
         }
         td {
             background: #ffffff;
@@ -122,7 +136,6 @@
         }
         tr:hover td {
             background: var(--accent-color);
-            transition: background 0.3s ease;
         }
         input[type="text"], select {
             width: 100%;
@@ -155,9 +168,6 @@
             background: var(--secondary-color);
             border-radius: 8px;
         }
-        footer p {
-            margin: 8px 0;
-        }
         .button {
             display: inline-block;
             padding: 12px 24px;
@@ -168,16 +178,11 @@
             font-size: 1em;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
             margin: 10px;
-            text-align: center;
         }
         .button:hover {
             background: #e07b39;
             transform: translateY(-2px);
-        }
-        .button:active {
-            transform: translateY(0);
         }
         .button.delete {
             background: #e53e3e;
@@ -185,33 +190,27 @@
         .button.delete:hover {
             background: #c53030;
         }
+        .hidden {
+            display: none;
+        }
         @media (max-width: 768px) {
-            body {
-                padding: 15px;
-                margin: 20px;
-            }
-            form {
-                grid-template-columns: 1fr;
-            }
-            h1 {
-                font-size: 2.2em;
-            }
-            h2 {
-                font-size: 1.6em;
-            }
-            table, th, td, input, select {
-                font-size: 0.85em;
-            }
+            body { padding: 15px; margin: 20px; }
+            form { grid-template-columns: 1fr; }
+            .row-container { grid-template-columns: 1fr; }
+            h1 { font-size: 2.2em; }
+            h2 { font-size: 1.6em; }
+            h3 { font-size: 1.2em; }
+            table, th, td, input, select { font-size: 0.85em; }
         }
     </style>
 </head>
 <body>
     <h1>Simple Plex Services Sample Information</h1>
-    
+
     <h2>Basic Information</h2>
-    <form>
-        <label>Service ID: 
-            <select name="service_id">
+    <form id="plexForm" onsubmit="return validateAndSubmit(event)">
+        <label>Service ID:
+            <select name="Service ID" id="service_id" required>
                 <option value="">Select Service ID</option>
                 <option value="SPCKB-PS-72-1">SPCKB-PS-72-1</option>
                 <option value="SPCKA-PS-16-1">SPCKA-PS-16-1</option>
@@ -229,13 +228,13 @@
                 <option value="SPCK-PANEL-CUSTOM">SPCK-PANEL-CUSTOM</option>
             </select>
         </label>
-        <label>Phone Number: <input type="text" placeholder="Enter Phone Number"></label>
-        <label>Email: <input type="email" placeholder="Enter Email"></label>
-        <label>Surname: <input type="text" placeholder="Enter Surname"></label>
-        <label>Given Name: <input type="text" placeholder="Enter Given Name"></label>
-        <label>Principal Investigator: <input type="text" placeholder="Enter Principal Investigator"></label>
-        <label>Institute: 
-            <select name="institute">
+        <label>Phone Number: <input type="text" name="Phone Number" placeholder="Enter Phone Number" required></label>
+        <label>Email: <input type="email" name="Email" placeholder="Enter Email" required></label>
+        <label>Surname: <input type="text" name="Surname" placeholder="Enter Surname" required></label>
+        <label>Given Name: <input type="text" name="Given Name" placeholder="Enter Given Name" required></label>
+        <label>Principal Investigator: <input type="text" name="Principal Investigator" placeholder="Enter Principal Investigator"></label>
+        <label>Institute:
+            <select name="Institute" id="institute" required>
                 <option value="">Select Institute</option>
                 <option value="CUHK">CUHK</option>
                 <option value="HKU">HKU</option>
@@ -245,128 +244,265 @@
                 <option value="CITYU">CITYU</option>
                 <option value="Others">Others (Please specify)</option>
             </select>
+            <input type="text" id="institute_other" name="Institute_Other" placeholder="Specify if Others" class="hidden mt-2">
         </label>
-        <label>Lab Address: <input type="text" placeholder="Enter Lab Address"></label>
-        <label>Sales Representative: <input type="text" placeholder="Enter Sales Representative"></label>
+        <label>Lab Address: <input type="text" name="Lab Address" placeholder="Enter Lab Address" required></label>
+        <label>Sales Representative:
+            <select name="Sales Representative" required>
+                <option value="">Select Sales Representative</option>
+                <option value="Yanny MAN">Yanny MAN</option>
+                <option value="Allen HU">Allen HU</option>
+                <option value="Hasily LIU">Hasily LIU</option>
+                <option value="Leo DU">Leo DU</option>
+                <option value="Joe LAI">Joe LAI</option>
+                <option value="Leon LI">Leon LI</option>
+            </select>
+        </label>
     </form>
-    
+
     <h2>Evaluation Part</h2>
-    <form>
-        <label>Workflow Configuration: <input type="text" placeholder="Specify configuration"></label>
-        <label>Expected Concentration Range: <input type="text" placeholder="Enter concentration range"></label>
-        <label>Endogenous Levels: <input type="text" placeholder="Enter endogenous levels"></label>
-        <label>Sample Preparation: <input type="text" placeholder="Describe preparation"></label>
-        <label>Current CV%: <input type="text" placeholder="Enter CV%"></label>
-        <label>Expected Recovery %: <input type="text" placeholder="Enter recovery %"></label>
-        <label>Current LLOQ: <input type="text" placeholder="Enter LLOQ"></label>
-        <label>Current Dilution Factor: <input type="text" placeholder="Enter dilution factor"></label>
+    <form id="evaluationForm">
+        <div class="eval-section">
+            <h3>Configuration</h3>
+            <label>Workflow Configuration: <input type="text" name="Configuration" placeholder="Specify configuration"></label>
+        </div>
+        <div class="eval-section">
+            <h3>Quantitative Metrics</h3>
+            <div class="row-container">
+                <label>Expected Concentration Range: <input type="text" name="Concentration Range" placeholder="Enter concentration range"></label>
+                <label>Current CV%: <input type="text" name="Current CV%" placeholder="Enter CV%"></label>
+                <label>Expected Recovery %: <input type="text" name="Expected Recovery %" placeholder="Enter recovery %"></label>
+                <label>Current LLOQ: <input type="text" name="Current LLOQ" placeholder="Enter LLOQ"></label>
+            </div>
+        </div>
+        <div class="eval-section">
+            <h3>Sample Details</h3>
+            <div class="row-container">
+                <label>Endogenous Levels: <textarea name="Endogenous Levels" placeholder="Enter endogenous levels"></textarea></label>
+                <label>Sample Preparation: <textarea name="Sample Preparation" placeholder="Describe preparation"></textarea></label>
+                <label>Current Dilution Factor: <textarea name="Dilution Factor" placeholder="Enter dilution factor"></textarea></label>
+            </div>
+        </div>
     </form>
-    
+
     <h2>Sample Information</h2>
     <table id="sampleTable">
-        <tr>
-            <th>Target of Interest</th>
-            <th>Sample Species</th>
-            <th>Sample Type</th>
-            <th>Sample Quantity</th>
-            <th>Cartridge of Interest</th>
-            <th>Cartridge Cat.No.</th>
-        </tr>
-        <tr>
-            <td><input type="text" placeholder="Enter target"></td>
-            <td>
-                <select name="sample_species">
-                    <option value="">Select Species</option>
-                    <option value="Human">Human</option>
-                    < anonim="Mouse">Mouse</option>
-                    <option value="Rat">Rat</option>
-                    <option value="Non-human primate">Non-human primate</option>
-                    <option value="Viral Titer">Viral Titer</option>
-                    <option value="Impurity Test">Impurity Test</option>
-                </select>
-            </td>
-            <td>
-                <select name="sample_type">
-                    <option value="">Select Sample Type</option>
-                    <option value="Serum">Serum</option>
-                    <option value="Cell culture supernatant">Cell culture supernatant</option>
-                    <option冥soption value="Plasma">Plasma</option>
-                    <option value="Others">Others (Please specify)</option>
-                </select>
-            </td>
-            <td><input type="text" placeholder="Enter quantity"></td>
-            <td><input type="text" placeholder="Enter cartridge"></td>
-            <td><input type="text" placeholder="Enter catalog number"></td>
-        </tr>
+        <thead>
+            <tr>
+                <th>Target of Interest</th>
+                <th>Sample Species</th>
+                <th>Sample Type</th>
+                <th>Sample Quantity</th>
+                <th>Cartridge of Interest</th>
+                <th>Cartridge Cat.No.</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" name="Target1" placeholder="Enter target"></td>
+                <td>
+                    <select name="Species1">
+                        <option value="">Select Species</option>
+                        <option value="Human">Human</option>
+                        <option value="Mouse">Mouse</option>
+                        <option value="Rat">Rat</option>
+                        <option value="Non-human Primate">Non-human Primate</option>
+                        <option value="Viral Titer">Viral Titer</option>
+                        <option value="Impurity Testing">Impurity Testing</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="Type1" onchange="toggleOtherInput(this, 'type_other1')">
+                        <option value="">Select Sample Type</option>
+                        <option value="Serum">Serum</option>
+                        <option value="Cell Supernatant">Cell Supernatant</option>
+                        <option value="Plasma">Plasma</option>
+                        <option value="Others">Others (Please specify)</option>
+                    </select>
+                    <input type="text" name="Type_Other1" id="type_other1" placeholder="Specify if Others" class="hidden mt-2">
+                </td>
+                <td><input type="text" name="Quantity1" placeholder="Enter quantity"></td>
+                <td><input type="text" name="Cartridge1" placeholder="Enter cartridge"></td>
+                <td><input type="text" name="CatNo1" placeholder="Enter catalog number"></td>
+                <td><button class="button" onclick="addRow()">Add Row</button></td>
+            </tr>
+        </tbody>
     </table>
-    <button class="button" onclick="addRow()">Add Row</button>
     <button class="button delete" onclick="deleteRow()">Delete Row</button>
-    
+
     <h2>Note</h2>
     <div class="note-section">
         <p>1. We provide our services from Monday to Thursday between 9:00 AM and 5:00 PM.</p>
         <p>2. Please give us the Simple Plex Services Form before 3 working days for our evaluation.</p>
         <p>3. Please give us a bench which size is more than 37 cm W x 54 cm D x 26 cm H for our Ella system.</p>
     </div>
-    
-    <button class="button" onclick="saveAsPDF()">Save as PDF</button>
-    
+
+    <button class="button" onclick="saveAsCSV()">Save as CSV</button>
+    <button class="button" type="submit" form="plexForm">Send</button>
+
     <footer>
         <p>Medikonia Limited<br>Unit 1005-1006, 10/F, Tower I, Grand Century Place, 193 Prince Edward Road West, Mong Kok, Kowloon, Hong Kong</p>
-        <p>Tel: 2866 8995 | Email: cs@medikonia.com | Web: www.medikonia.com</p>
+        <p>Tel: 2866 8995 | Email: <a href="mailto:cs@medikonia.com">cs@medikonia.com</a> | Web: <a href="http://www.medikonia.com">www.medikonia.com</a></p>
     </footer>
 
     <script>
+        const instituteSelect = document.getElementById('institute');
+        const instituteOther = document.getElementById('institute_other');
+        instituteSelect.addEventListener('change', () => {
+            instituteOther.classList.toggle('hidden', instituteSelect.value !== 'Others');
+            instituteOther.required = instituteSelect.value === 'Others';
+        });
+
+        function toggleOtherInput(select, otherInputId) {
+            const otherInput = document.getElementById(otherInputId);
+            otherInput.classList.toggle('hidden', select.value !== 'Others');
+            otherInput.required = select.value === 'Others';
+        }
+
+        let rowCount = 1;
+
         function addRow() {
-            const table = document.getElementById('sampleTable');
-            const row = table.insertRow(-1);
-            row.innerHTML = `
-                <td><input type="text" placeholder="Enter target"></td>
+            rowCount++;
+            const table = document.getElementById('sampleTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" name="Target${rowCount}" placeholder="Enter target"></td>
                 <td>
-                    <select name="sample_species">
+                    <select name="Species${rowCount}">
                         <option value="">Select Species</option>
                         <option value="Human">Human</option>
                         <option value="Mouse">Mouse</option>
                         <option value="Rat">Rat</option>
-                        <option value="Non-human primate">Non-human primate</option>
+                        <option value="Non-human Primate">Non-human Primate</option>
                         <option value="Viral Titer">Viral Titer</option>
-                        <option value="Impurity Test">Impurity Test</option>
+                        <option value="Impurity Testing">Impurity Testing</option>
                     </select>
                 </td>
                 <td>
-                    <select name="sample_type">
+                    <select name="Type${rowCount}" onchange="toggleOtherInput(this, 'type_other${rowCount}')">
                         <option value="">Select Sample Type</option>
                         <option value="Serum">Serum</option>
-                        <option value="Cell culture supernatant">Cell culture supernatant</option>
+                        <option value="Cell Supernatant">Cell Supernatant</option>
                         <option value="Plasma">Plasma</option>
                         <option value="Others">Others (Please specify)</option>
                     </select>
+                    <input type="text" name="Type_Other${rowCount}" id="type_other${rowCount}" placeholder="Specify if Others" class="hidden mt-2">
                 </td>
-                <td><input type="text" placeholder="Enter quantity"></td>
-                <td><input type="text" placeholder="Enter cartridge"></td>
-                <td><input type="text" placeholder="Enter catalog number"></td>
+                <td><input type="text" name="Quantity${rowCount}" placeholder="Enter quantity"></td>
+                <td><input type="text" name="Cartridge${rowCount}" placeholder="Enter cartridge"></td>
+                <td><input type="text" name="CatNo${rowCount}" placeholder="Enter catalog number"></td>
+                <td><button class="button delete" onclick="deleteRow(this)">Delete</button></td>
             `;
         }
 
-        function deleteRow() {
+        function deleteRow(button) {
             const table = document.getElementById('sampleTable');
             if (table.rows.length > 2) {
-                table.deleteRow(-1);
+                if (button) {
+                    const row = button.parentNode.parentNode;
+                    row.parentNode.removeChild(row);
+                } else {
+                    table.deleteRow(-1);
+                }
+                rowCount--;
+                const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                for (let i = 0; i < rows.length; i++) {
+                    const inputs = rows[i].getElementsByTagName('input');
+                    const selects = rows[i].getElementsByTagName('select');
+                    for (let j = 0; j < inputs.length; j++) {
+                        const name = inputs[j].name;
+                        if (name) inputs[j].name = name.replace(/\d+/, i + 1);
+                    }
+                    for (let j = 0; j < selects.length; j++) {
+                        const name = selects[j].name;
+                        if (name) selects[j].name = name.replace(/\d+/, i + 1);
+                    }
+                    const otherInput = rows[i].querySelector('input[id^="type_other"]');
+                    if (otherInput) otherInput.id = `type_other${i + 1}`;
+                }
+                rowCount = rows.length;
             } else {
                 alert('Cannot delete the last row.');
             }
         }
 
-        function saveAsPDF() {
-            const element = document.body;
-            const options = {
-                margin: 10,
-                filename: 'Simple_Plex_Services_Form.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(options).from(element).save();
+        function validateAndSubmit(event) {
+            event.preventDefault();
+            const form = document.getElementById('plexForm');
+            const requiredFields = form.querySelectorAll('[required]');
+            for (let field of requiredFields) {
+                if (!field.value.trim()) {
+                    alert('Please fill all required fields.');
+                    return false;
+                }
+            }
+            const serviceId = document.getElementById('service_id').value;
+            if (serviceId) {
+                const subject = encodeURIComponent(`${serviceId} Services`);
+                window.location.href = `mailto:support@medikonia.com?subject=${subject}`;
+            }
+            form.submit();
+            return true;
+        }
+
+        function saveAsCSV() {
+            const basicForm = document.getElementById('plexForm');
+            const evalForm = document.getElementById('evaluationForm');
+            const table = document.getElementById('sampleTable').getElementsByTagName('tbody')[0];
+            let csv = [];
+
+            // Basic Information
+            csv.push('Basic Information');
+            csv.push('Field,Value');
+            const basicFields = basicForm.querySelectorAll('input, select');
+            basicFields.forEach(field => {
+                if (field.value.trim() && field.name !== 'Institute_Other') {
+                    csv.push(`"${field.name.replace(/"/g, '""')}","${field.value.replace(/"/g, '""')}"`);
+                }
+            });
+            if (basicForm.querySelector('#institute').value === 'Others' && basicForm.querySelector('#institute_other').value.trim()) {
+                csv.push('"Institute_Other","' + basicForm.querySelector('#institute_other').value.replace(/"/g, '""') + '"');
+            }
+            csv.push('');
+
+            // Evaluation Part
+            csv.push('Evaluation Part');
+            csv.push('Field,Value');
+            const evalFields = evalForm.querySelectorAll('input, textarea');
+            evalFields.forEach(field => {
+                if (field.value.trim()) {
+                    csv.push(`"${field.name.replace(/"/g, '""')}","${field.value.replace(/"/g, '""')}"`);
+                }
+            });
+            csv.push('');
+
+            // Sample Information
+            csv.push('Sample Information');
+            csv.push('"Target of Interest","Sample Species","Sample Type","Sample Quantity","Cartridge of Interest","Cartridge Cat.No."');
+            const rows = table.getElementsByTagName('tr');
+            for (let row of rows) {
+                const inputs = row.querySelectorAll('input, select');
+                const rowData = [];
+                inputs.forEach(input => {
+                    if (input.name.includes('Type_Other') && !input.value.trim()) return;
+                    if (input.value.trim()) {
+                        rowData.push(`"${input.value.replace(/"/g, '""')}"`);
+                    } else {
+                        rowData.push('""');
+                    }
+                });
+                if (rowData.some(val => val !== '""')) csv.push(rowData.join(','));
+            }
+
+            // Download CSV
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Simple_Plex_Services_Form.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
     </script>
 </body>
