@@ -208,7 +208,7 @@
     <h1>Simple Plex Services Sample Information</h1>
 
     <h2>Basic Information</h2>
-    <form id="plexForm" onsubmit="return validateAndSubmit(event)">
+    <form id="plexForm">
         <label>Service ID:
             <select name="Service ID" id="service_id" required>
                 <option value="">Select Service ID</option>
@@ -264,9 +264,7 @@
     <form id="evaluationForm">
         <div class="eval-section">
             <h3>Configuration</h3>
-            <div class="row-container">
-                <label>Workflow Configuration: <input type="text" name="Configuration" placeholder="Specify configuration"></label>
-            </div>
+            <label>Workflow Configuration: <input type="text" name="Configuration" placeholder="Specify configuration"></label>
         </div>
         <div class="eval-section">
             <h3>Quantitative Metrics</h3>
@@ -338,10 +336,10 @@
         <p>1. We provide our services from Monday to Thursday between 9:00 AM and 5:00 PM.</p>
         <p>2. Please give us the Simple Plex Services Form before 3 working days for our evaluation.</p>
         <p>3. Please give us a bench which size is more than 37 cm W x 54 cm D x 26 cm H for our Ella system.</p>
+        <p>4. Please return the CSV form by email to the Sales Representative.</p>
     </div>
 
     <button class="button" onclick="saveAsCSV()">Save as CSV</button>
-    <button class="button" type="submit" form="plexForm">Send</button>
 
     <footer>
         <p>Medikonia Limited<br>Unit 1005-1006, 10/F, Tower I, Grand Century Place, 193 Prince Edward Road West, Mong Kok, Kowloon, Hong Kong</p>
@@ -429,25 +427,6 @@
             }
         }
 
-        function validateAndSubmit(event) {
-            event.preventDefault();
-            const form = document.getElementById('plexForm');
-            const requiredFields = form.querySelectorAll('[required]');
-            for (let field of requiredFields) {
-                if (!field.value.trim()) {
-                    alert('Please fill all required fields.');
-                    return false;
-                }
-            }
-            const serviceId = document.getElementById('service_id').value;
-            if (serviceId) {
-                const subject = encodeURIComponent(`${serviceId} Services`);
-                window.location.href = `mailto:support@medikonia.com?subject=${subject}`;
-            }
-            form.submit();
-            return true;
-        }
-
         function saveAsCSV() {
             const basicForm = document.getElementById('plexForm');
             const evalForm = document.getElementById('evaluationForm');
@@ -458,13 +437,19 @@
             csv.push('Basic Information');
             csv.push('Field,Value');
             const basicFields = basicForm.querySelectorAll('input, select');
+            let serviceId = '', institute = '', givenName = '', surname = '';
             basicFields.forEach(field => {
                 if (field.value.trim() && field.name !== 'Institute_Other') {
                     csv.push(`"${field.name.replace(/"/g, '""')}","${field.value.replace(/"/g, '""')}"`);
+                    if (field.name === 'Service ID') serviceId = field.value.replace(/[^a-zA-Z0-9-]/g, '');
+                    if (field.name === 'Institute') institute = field.value.replace(/[^a-zA-Z0-9]/g, '');
+                    if (field.name === 'Given Name') givenName = field.value.replace(/[^a-zA-Z0-9]/g, '');
+                    if (field.name === 'Surname') surname = field.value.replace(/[^a-zA-Z0-9]/g, '');
                 }
             });
             if (basicForm.querySelector('#institute').value === 'Others' && basicForm.querySelector('#institute_other').value.trim()) {
                 csv.push('"Institute_Other","' + basicForm.querySelector('#institute_other').value.replace(/"/g, '""') + '"');
+                institute = basicForm.querySelector('#institute_other').value.replace(/[^a-zA-Z0-9]/g, '');
             }
             csv.push('');
 
@@ -497,12 +482,13 @@
                 if (rowData.some(val => val !== '""')) csv.push(rowData.join(','));
             }
 
-            // Download CSV
+            // Download CSV with dynamic filename
+            const filename = `${serviceId}_${institute}_${givenName}_${surname}.csv`;
             const csvContent = csv.join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'Simple_Plex_Services_Form.csv';
+            link.download = filename || 'Simple_Plex_Services_Form.csv';
             link.click();
             URL.revokeObjectURL(link.href);
         }
